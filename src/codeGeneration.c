@@ -52,6 +52,7 @@ void codeGenFunctionCall(AST_NODE *functionCallNode);
 void codeGenVariableReference(AST_NODE *idNode);
 void codeGenConstantReference(AST_NODE *constantNode);
 int codeGenCalcArrayElemenetAddress(AST_NODE *idNode);
+void codeGenInitId(AST_NODE *node);
 
 int getLabelNumber() {
   static int labelNumber = 0;
@@ -393,11 +394,21 @@ void codeGenGlobalVariable(AST_NODE *varaibleDeclListNode) {
             idSymbolTableEntry->attribute->attr.typeDescriptor;
         if (idTypeDescriptor->kind == SCALAR_TYPE_DESCRIPTOR) {
           if (idTypeDescriptor->properties.dataType == INT_TYPE) {
-            fprintf(g_codeGenOutputFp, "_g_%s: .word 0\n",
-                    idSymbolTableEntry->name);
-          } else if (idTypeDescriptor->properties.dataType == FLOAT_TYPE) {
-            fprintf(g_codeGenOutputFp, "_g_%s: .float 0.0\n",
-                    idSymbolTableEntry->name);
+			if(idNode->semantic_value.identifierSemanticValue.kind == WITH_INIT_ID){
+				fprintf(g_codeGenOutputFp, "_g_%s: .word %d\n",
+						idSymbolTableEntry->name, idNode->child->semantic_value.const1->const_u.intval);
+			}else{
+				fprintf(g_codeGenOutputFp, "_g_%s: .word 0\n",
+						idSymbolTableEntry->name);
+			}  
+		} else if (idTypeDescriptor->properties.dataType == FLOAT_TYPE) {
+			if(idNode->semantic_value.identifierSemanticValue.kind == WITH_INIT_ID){
+				fprintf(g_codeGenOutputFp, "_g_%s: .float %f\n",
+						idSymbolTableEntry->name, idNode->child->semantic_value.const1->const_u.fval);
+			}else{
+				fprintf(g_codeGenOutputFp, "_g_%s: .float 0.0\n",
+						idSymbolTableEntry->name);
+			}  
           }
         } else if (idTypeDescriptor->kind == ARRAY_TYPE_DESCRIPTOR) {
           int variableSize = getVariableSize(idTypeDescriptor);
@@ -1244,21 +1255,36 @@ void codeGenStmtNode(AST_NODE *stmtNode) {
   }
 }
 
+void codeGenDeclList(AST_NODE * node){
+	AST_NODE * traverseDeclareList = node->child;
+	while(traverseDeclareList){
+		AST_NODE * traverseIdList = traverseDeclareList->child->rightSibling;
+		while(traverseIdList){
+			codeGenInitId(traverseIdList);
+			traverseIdList = traverseIdList->rightSibling;
+		}
+		traverseDeclareList = traverseDeclareList->rightSibling;
+	}
+}
+
 void codeGenInitId(AST_NODE *node){
+	printf("%s type %d\n", node->semantic_value.identifierSemanticValue.symbolTableEntry->name, node->semantic_value.identifierSemanticValue.kind);
 	if(node->semantic_value.identifierSemanticValue.kind == WITH_INIT_ID){
 		/* TODO implict conversion */
-		SymbolAttribute * attr = node->semantic_value.identifierSemanticValue.symbolTableEntry->attribute;
+		printf("hello2\n");
+		SymbolTableEntry * entry = node->semantic_value.identifierSemanticValue.symbolTableEntry;
+		SymbolAttribute * attr = entry->attribute;
 		AST_NODE * rightOp = node->child;
 		codeGenConstantReference(rightOp);
 		char * reg1Name = NULL;
 		int reg1Index = rightOp->registerIndex;
 		if(node->dataType == INT_TYPE){
 			codeGenPrepareRegister(INT_REG, reg1Index, 1, 0, &reg1Name);
-			fprintf(g_codeGenOutputFp, "sw %s, %d(fp)", reg1Name, attr->offsetInAR);
+			fprintf(g_codeGenOutputFp, "sw %s, %d(fp)\n", reg1Name, attr->offsetInAR);
 			freeRegister(INT_REG, reg1Index);
 		}else if(node->dataType == FLOAT_TYPE){
 			codeGenPrepareRegister(FLOAT_REG, reg1Index, 1, 0, &reg1Name);
-			fprintf(g_codeGenOutputFp, "fsw %s, %d(fp)", reg1Name, attr->offsetInAR);
+			fprintf(g_codeGenOutputFp, "fsw %s, %d(fp)\n", reg1Name, attr->offsetInAR);
 			freeRegister(FLOAT_REG, reg1Index);
 		}
 	}
@@ -1269,6 +1295,7 @@ void codeGenGeneralNode(AST_NODE *node) {
   switch (node->nodeType) {
   case VARIABLE_DECL_LIST_NODE:
 	/* Todo init id */
+	codeGenDeclList(node);
     break;
   case STMT_LIST_NODE:
     while (traverseChildren) {

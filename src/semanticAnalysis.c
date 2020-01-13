@@ -489,7 +489,9 @@ void checkInit(AST_NODE* initNode, AST_NODE *declNode)
     if (isError || rightOp->dataType == ERROR_TYPE) {
         initNode->dataType = ERROR_TYPE;
         declNode->dataType = ERROR_TYPE;
-    }
+    }else{
+		initNode->dataType = rightOp->dataType;
+	}
 }
 
 
