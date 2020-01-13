@@ -128,6 +128,7 @@ void codeGenPrepareRegister_64(ProcessorType processorType, int regIndex,
   }
 }
 
+// ARM instruction set?
 void codeGenGetBoolOfFloat(int boolRegIndex, int floatRegIndex) {
 
   int zero = 0x0;
@@ -777,7 +778,8 @@ void codeGenFunctionCall(AST_NODE *functionCallNode) {
   if (functionIdNode->semantic_value.identifierSemanticValue.symbolTableEntry) {
     if (functionIdNode->semantic_value.identifierSemanticValue.symbolTableEntry
             ->attribute->attr.functionSignature->returnType == INT_TYPE) {
-      functionCallNode->registerIndex = getRegister(INT_REG);
+	  /* TODO function call no parameter/with parameter */
+	  functionCallNode->registerIndex = getRegister(INT_REG);
       char *returnIntRegName = NULL;
       codeGenPrepareRegister(INT_REG, functionCallNode->registerIndex, 0, 0,
                              &returnIntRegName);
@@ -1242,10 +1244,31 @@ void codeGenStmtNode(AST_NODE *stmtNode) {
   }
 }
 
+void codeGenInitId(AST_NODE *node){
+	if(node->semantic_value.identifierSemanticValue.kind == WITH_INIT_ID){
+		/* TODO implict conversion */
+		SymbolAttribute * attr = node->semantic_value.identifierSemanticValue.symbolTableEntry->attribute;
+		AST_NODE * rightOp = node->child;
+		codeGenConstantReference(rightOp);
+		char * reg1Name = NULL;
+		int reg1Index = rightOp->registerIndex;
+		if(node->dataType == INT_TYPE){
+			codeGenPrepareRegister(INT_REG, reg1Index, 1, 0, &reg1Name);
+			fprintf(g_codeGenOutputFp, "sw %s, %d(fp)", reg1Name, attr->offsetInAR);
+			freeRegister(INT_REG, reg1Index);
+		}else if(node->dataType == FLOAT_TYPE){
+			codeGenPrepareRegister(FLOAT_REG, reg1Index, 1, 0, &reg1Name);
+			fprintf(g_codeGenOutputFp, "fsw %s, %d(fp)", reg1Name, attr->offsetInAR);
+			freeRegister(FLOAT_REG, reg1Index);
+		}
+	}
+}
+
 void codeGenGeneralNode(AST_NODE *node) {
   AST_NODE *traverseChildren = node->child;
   switch (node->nodeType) {
   case VARIABLE_DECL_LIST_NODE:
+	/* Todo init id */
     break;
   case STMT_LIST_NODE:
     while (traverseChildren) {
