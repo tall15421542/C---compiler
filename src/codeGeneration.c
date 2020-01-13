@@ -1163,7 +1163,7 @@ void codeGenForStmt(AST_NODE *forStmtNode) {
 	codeGenGeneralNode(conditionExpression);
 	char * reg1Name;
 	codeGenPrepareRegister_64(INT_REG, conditionExpression->registerIndex, 1, 0, &reg1Name);
-	fprintf(g_codeGenOutputFp, "beqz %s, _Lexit%d\n", reg1Name, labelNumber);
+	fprintf(g_codeGenOutputFp, "beqz %s, _LExit%d\n", reg1Name, labelNumber);
 	fprintf(g_codeGenOutputFp, "j _Body%d\n", labelNumber);
 	freeRegister_dataType(conditionExpression->dataType, conditionExpression->registerIndex);
 
