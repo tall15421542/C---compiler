@@ -54,6 +54,16 @@ void codeGenConstantReference(AST_NODE *constantNode);
 int codeGenCalcArrayElemenetAddress(AST_NODE *idNode);
 void codeGenInitId(AST_NODE *node);
 
+int freeRegister_dataType(DATA_TYPE dType, int registerIndex){
+	if(dType == INT_TYPE){
+		freeRegister(INT_REG, registerIndex);
+	}
+	else if(dType == FLOAT_TYPE){
+		freeRegister(FLOAT_REG, registerIndex);
+	}
+	fprintf(stderr, "free with wrong dataType\n");
+}
+
 int getLabelNumber() {
   static int labelNumber = 0;
   return labelNumber++;
@@ -1140,7 +1150,35 @@ void codeGenWhileStmt(AST_NODE *whileStmtNode) {
   fprintf(g_codeGenOutputFp, "_whileExitLabel_%d:\n", labelNumber);
 }
 
-void codeGenForStmt(AST_NODE *forStmtNode) { /*TODO*/ }
+void codeGenForStmt(AST_NODE *forStmtNode) {
+	/*TODO*/
+	int labelNumber = getLabelNumber();
+	AST_NODE * initExpression = forStmtNode->child;
+	codeGenGeneralNode(initExpression);
+	freeRegister_dataType(initExpression->dataType, initExpression->registerIndex);
+	fprintf(g_codeGenOutputFp, "j _Test%d\n", labelNumber);
+
+	fprintf(g_codeGenOutputFp, "_Test%d: \n", labelNumber);
+	AST_NODE * conditionExpression = initExpression->rightSibling;
+	codeGenGeneralNode(conditionExpression);
+	char * reg1Name;
+	codeGenPrepareRegister_64(INT_REG, conditionExpression->registerIndex, 1, 0, &reg1Name);
+	fprintf(g_codeGenOutputFp, "beqz %s, _Lexit%d\n", reg1Name, labelNumber);
+	fprintf(g_codeGenOutputFp, "j _Body%d\n", labelNumber);
+	freeRegister_dataType(conditionExpression->dataType, conditionExpression->registerIndex);
+
+	fprintf(g_codeGenOutputFp, "_inc%d:\n", labelNumber);
+	AST_NODE * loopExpression = conditionExpression->rightSibling;
+	codeGenGeneralNode(loopExpression);
+	fprintf(g_codeGenOutputFp, "j _Test%d\n", labelNumber);
+	freeRegister_dataType(loopExpression->dataType, loopExpression->registerIndex);
+
+	fprintf(g_codeGenOutputFp, "_Body%d:\n", labelNumber);
+	AST_NODE * bodyNode = loopExpression->rightSibling;
+	codeGenStmtNode(bodyNode);
+	fprintf(g_codeGenOutputFp, "j _inc%d\n", labelNumber);
+	fprintf(g_codeGenOutputFp, "_LExit%d:\n", labelNumber);
+}
 
 void codeGenIfStmt(AST_NODE *ifStmtNode) {
   AST_NODE *boolExpression = ifStmtNode->child;
@@ -1268,10 +1306,8 @@ void codeGenDeclList(AST_NODE * node){
 }
 
 void codeGenInitId(AST_NODE *node){
-	printf("%s type %d\n", node->semantic_value.identifierSemanticValue.symbolTableEntry->name, node->semantic_value.identifierSemanticValue.kind);
 	if(node->semantic_value.identifierSemanticValue.kind == WITH_INIT_ID){
 		/* TODO implict conversion */
-		printf("hello2\n");
 		SymbolTableEntry * entry = node->semantic_value.identifierSemanticValue.symbolTableEntry;
 		SymbolAttribute * attr = entry->attribute;
 		AST_NODE * rightOp = node->child;
@@ -1313,9 +1349,9 @@ void codeGenGeneralNode(AST_NODE *node) {
           freeRegister(FLOAT_REG, traverseChildren->registerIndex);
         }
       }
+	  node->registerIndex = traverseChildren->registerIndex;
       traverseChildren = traverseChildren->rightSibling;
     }
-    node->registerIndex = traverseChildren->registerIndex;
     break;
   case NONEMPTY_RELOP_EXPR_LIST_NODE:
     while (traverseChildren) {
@@ -1327,9 +1363,9 @@ void codeGenGeneralNode(AST_NODE *node) {
           freeRegister(FLOAT_REG, traverseChildren->registerIndex);
         }
       }
+	  node->registerIndex = traverseChildren->registerIndex;
       traverseChildren = traverseChildren->rightSibling;
     }
-    node->registerIndex = traverseChildren->registerIndex;
     break;
   case NUL_NODE:
     break;
