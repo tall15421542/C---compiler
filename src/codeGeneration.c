@@ -798,11 +798,11 @@ void codeGenFunctionCall(AST_NODE *functionCallNode) {
 	  int label = getLabelNumber();
 	  FunctionSignature * funcSign = (functionIdNode->semantic_value.identifierSemanticValue
 			                           .symbolTableEntry->attribute->attr.functionSignature);
-	  fprintf(g_codeGenOutputFp, "la %s, L_paraSize_%d\n", intOtherRegisterName_64[1], label); 
-	  fprintf(g_codeGenOutputFp, "lw %s, 0(%s)\n", intOtherRegisterName_64[1], intOtherRegisterName_64[1]);
-	  fprintf(g_codeGenOutputFp, "sub sp, sp, %s\n", intOtherRegisterName_64[1]);
 	  int offsetForPara = 0;
 	  if(funcSign->parametersCount > 0){
+		  fprintf(g_codeGenOutputFp, "la %s, L_paraSize_%d\n", intOtherRegisterName_64[1], label); 
+		  fprintf(g_codeGenOutputFp, "lw %s, 0(%s)\n", intOtherRegisterName_64[1], intOtherRegisterName_64[1]);
+		  fprintf(g_codeGenOutputFp, "sub sp, sp, %s\n", intOtherRegisterName_64[1]);
 		AST_NODE * para = parameterList->child;
 		Parameter * formal_para = funcSign->parameterList;
 		while(formal_para){
@@ -926,7 +926,7 @@ int codeGenCalcArrayElemenetAddress(AST_NODE *idNode) {
   } else {
     fprintf(g_codeGenOutputFp, "la %s, _g_%s\n", intWorkRegisterName_64[0],
             idNode->semantic_value.identifierSemanticValue.identifierName);
-    codeGenPrepareRegister_64(INT_REG, linearIdxRegisterIndex, 1, 1,
+    codeGenPrepareRegister(INT_REG, linearIdxRegisterIndex, 1, 1,
                               &linearOffsetRegName);
     fprintf(g_codeGenOutputFp, "add %s,%s,%s\n", linearOffsetRegName,
             linearOffsetRegName, intWorkRegisterName_64[0]);
