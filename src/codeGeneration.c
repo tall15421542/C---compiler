@@ -1374,7 +1374,7 @@ void codeGenInitId(AST_NODE *node){
 		SymbolTableEntry * entry = node->semantic_value.identifierSemanticValue.symbolTableEntry;
 		SymbolAttribute * attr = entry->attribute;
 		AST_NODE * rightOp = node->child;
-		codeGenConstantReference(rightOp);
+		codeGenExprRelatedNode(rightOp);
 		if(node->dataType == FLOAT_TYPE && rightOp->dataType == INT_TYPE){
 			rightOp->registerIndex = codeGenConvertFromIntToFloat(rightOp->registerIndex);
 			rightOp->dataType == FLOAT_TYPE;
