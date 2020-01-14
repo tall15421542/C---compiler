@@ -1334,7 +1334,7 @@ void codeGenInitId(AST_NODE *node){
 		AST_NODE * rightOp = node->child;
 		codeGenConstantReference(rightOp);
 		if(node->dataType == FLOAT_TYPE && rightOp->dataType == INT_TYPE){
-			rightOp->registerIndex = codeGenConvertFromFloatToInt(rightOp->registerIndex);
+			rightOp->registerIndex = codeGenConvertFromIntToFloat(rightOp->registerIndex);
 			rightOp->dataType == FLOAT_TYPE;
 		}
 		else if(node->dataType == INT_TYPE && rightOp->dataType == FLOAT_TYPE){
