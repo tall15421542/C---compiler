@@ -795,10 +795,10 @@ void codeGenFunctionCall(AST_NODE *functionCallNode) {
     if (strcmp(functionIdNode->semantic_value.identifierSemanticValue
                    .identifierName,
                "main") != 0) {
+	  int label = getLabelNumber();
 	  FunctionSignature * funcSign = (functionIdNode->semantic_value.identifierSemanticValue
 			                           .symbolTableEntry->attribute->attr.functionSignature);
-	  fprintf(g_codeGenOutputFp, "la %s, L_paraSize_%s\n", intOtherRegisterName_64[1], functionIdNode->semantic_value.identifierSemanticValue
-															.symbolTableEntry->name);
+	  fprintf(g_codeGenOutputFp, "la %s, L_paraSize_%d\n", intOtherRegisterName_64[1], label); 
 	  fprintf(g_codeGenOutputFp, "lw %s, 0(%s)\n", intOtherRegisterName_64[1], intOtherRegisterName_64[1]);
 	  fprintf(g_codeGenOutputFp, "sub sp, sp, %s\n", intOtherRegisterName_64[1]);
 	  int offsetForPara = 0;
@@ -831,8 +831,7 @@ void codeGenFunctionCall(AST_NODE *functionCallNode) {
 		  para = para->rightSibling;
 		}
 		  fprintf(g_codeGenOutputFp, ".data\n");
-		  fprintf(g_codeGenOutputFp, "L_paraSize_%s: %d\n",functionIdNode->semantic_value.identifierSemanticValue
-														   .symbolTableEntry->name, offsetForPara);
+		  fprintf(g_codeGenOutputFp, "L_paraSize_%d: %d\n", label, offsetForPara);
 		  fprintf(g_codeGenOutputFp, ".text\n");
 	  }
       fprintf(g_codeGenOutputFp, "jal _start_%s\n",
