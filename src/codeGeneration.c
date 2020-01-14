@@ -848,6 +848,7 @@ int codeGenCalcArrayElemenetAddress(AST_NODE *idNode) {
                                linearIdxRegisterIndex, dimRegIndex);
 		freeRegister(INT_REG, dimRegIndex);
 		
+		codeGenExprRelatedNode(traverseDim);
 		codeGen3RegInstruction(INT_REG, "add", linearIdxRegisterIndex, linearIdxRegisterIndex, traverseDim->registerIndex);
 		freeRegister(INT_REG, traverseDim->registerIndex);
 		freeRegister(INT_REG, dimRegIndex);
