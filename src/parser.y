@@ -781,13 +781,13 @@ char *argv[];
      
      semanticAnalysis(prog);
      
-     codeGenerate(prog);
-     
-     closeSystem();
      
      if(!g_anyErrorOccur) {
         printf("Parsing completed. No errors found.\n");
+         codeGenerate(prog);
+     
      }
+     closeSystem();
   } /* main */
 
 

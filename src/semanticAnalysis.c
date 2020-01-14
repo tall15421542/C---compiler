@@ -395,7 +395,9 @@ void declareIdList(AST_NODE* declarationNode, SymbolAttributeKind isVariableOrTy
             {
                 traverseIDList->semantic_value.identifierSemanticValue.symbolTableEntry =
                     enterSymbol(traverseIDList->semantic_value.identifierSemanticValue.identifierName, attribute);
-
+				
+				SymbolTableEntry * entry = traverseIDList->semantic_value.identifierSemanticValue.symbolTableEntry;
+				traverseIDList->dataType = entry->attribute->attr.typeDescriptor->properties.dataType;
                 //if(is variable && !function parameter && !globalVariable)
                 if(isVariableOrTypeAttribute == VARIABLE_ATTRIBUTE && !ignoreArrayFirstDimSize && !isGlobalVariable(traverseIDList->semantic_value.identifierSemanticValue.symbolTableEntry))
                 {
@@ -490,7 +492,6 @@ void checkInit(AST_NODE* initNode, AST_NODE *declNode)
         initNode->dataType = ERROR_TYPE;
         declNode->dataType = ERROR_TYPE;
     }else{
-		initNode->dataType = rightOp->dataType;
 	}
 }
 

@@ -354,7 +354,16 @@ void codeGen2Reg1ImmInstruction(ProcessorType processorType, char *instruction,
 int codeGenConvertFromIntToFloat(int intRegIndex) {
   /*TODO*/
   int floatRegisterIndex;
+  char *reg1Name = NULL;
+  codeGenPrepareRegister(FLOAT_REG, floatRegisterIndex, 0, 0, &reg1Name);
 
+  char *reg2Name = NULL;
+  codeGenPrepareRegister(INT_REG, intRegIndex, 0, 0, &reg2Name);
+
+				
+  fprintf(g_codeGenOutputFp, "fcvt.d.w %s, %s\n", reg1Name, reg2Name);
+  fprintf(g_codeGenOutputFp, "fcvt.s.d %s, %s\n", reg1Name, reg1Name);
+  freeRegister(INT_REG, intRegIndex);
   return floatRegisterIndex;
 }
 
@@ -1031,6 +1040,9 @@ void codeGenAssignmentStmt(AST_NODE *assignmentStmtNode) {
   codeGenExprRelatedNode(rightOp);
 
   /* TODO type conversion */
+  if(leftOp->dataType == FLOAT_TYPE && rightOp->dataType == INT_TYPE){
+    rightOp->registerIndex = codeGenConvertFromIntToFloat(rightOp->registerIndex);
+  }
 
   if (leftOp->semantic_value.identifierSemanticValue.kind == NORMAL_ID) {
     if (leftOp->dataType == INT_TYPE) {
@@ -1236,7 +1248,10 @@ void codeGenReturnStmt(AST_NODE *returnStmtNode) {
   if (returnVal->nodeType != NUL_NODE) {
     codeGenExprRelatedNode(returnVal);
     /* TODO type conversion */
-
+	if(returnStmtNode->dataType == FLOAT_TYPE && returnVal->dataType == INT_TYPE){
+		returnVal->registerIndex = codeGenConvertFromIntToFloat(returnVal->registerIndex);
+		returnVal->dataType == FLOAT_TYPE;
+	}
     char *returnValRegName = NULL;
     if (returnVal->dataType == INT_TYPE) {
       codeGenPrepareRegister(INT_REG, returnVal->registerIndex, 1, 0,
@@ -1318,6 +1333,14 @@ void codeGenInitId(AST_NODE *node){
 		SymbolAttribute * attr = entry->attribute;
 		AST_NODE * rightOp = node->child;
 		codeGenConstantReference(rightOp);
+		if(node->dataType == FLOAT_TYPE && rightOp->dataType == INT_TYPE){
+			rightOp->registerIndex = codeGenConvertFromFloatToInt(rightOp->registerIndex);
+			rightOp->dataType == FLOAT_TYPE;
+		}
+		else if(node->dataType == INT_TYPE && rightOp->dataType == FLOAT_TYPE){
+			fprintf(stderr, "not support float to int\n");
+			exit(1);
+		}
 		char * reg1Name = NULL;
 		int reg1Index = rightOp->registerIndex;
 		if(node->dataType == INT_TYPE){
