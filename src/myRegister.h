@@ -17,6 +17,7 @@ extern char* intWorkRegisterName[];
 
 extern char* intRegisterName_64[];
 
+extern char* intOtherRegisterName_64[];
 extern char* intWorkRegisterName_64[];
 
 extern char* floatRegisterName[];
