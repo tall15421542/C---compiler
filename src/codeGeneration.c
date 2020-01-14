@@ -795,9 +795,51 @@ void codeGenFunctionCall(AST_NODE *functionCallNode) {
     if (strcmp(functionIdNode->semantic_value.identifierSemanticValue
                    .identifierName,
                "main") != 0) {
+	  FunctionSignature * funcSign = (functionIdNode->semantic_value.identifierSemanticValue
+			                           .symbolTableEntry->attribute->attr.functionSignature);
+	  fprintf(g_codeGenOutputFp, "la %s, L_paraSize_%s\n", intOtherRegisterName_64[1], functionIdNode->semantic_value.identifierSemanticValue
+															.symbolTableEntry->name);
+	  fprintf(g_codeGenOutputFp, "lw %s, 0(%s)\n", intOtherRegisterName_64[1], intOtherRegisterName_64[1]);
+	  fprintf(g_codeGenOutputFp, "sub sp, sp, %s\n", intOtherRegisterName_64[1]);
+	  int offsetForPara = 0;
+	  if(funcSign->parametersCount > 0){
+		AST_NODE * para = parameterList->child;
+		Parameter * formal_para = funcSign->parameterList;
+		while(formal_para){
+		  codeGenExprRelatedNode(para);
+		  if(formal_para->type->properties.dataType == INT_TYPE){
+			  if(para->dataType == FLOAT_TYPE){
+				fprintf(stderr, "not support float to int\n");
+				exit(1);
+			  }
+			  char * dstRegName;
+			  codeGenPrepareRegister(INT_REG, para->registerIndex, 1, 0, &dstRegName);
+			  fprintf(g_codeGenOutputFp, "sw %s, %d(sp)\n", dstRegName, offsetForPara + 8);
+			  freeRegister(INT_REG, para->registerIndex);
+		  }else if(formal_para->type->properties.dataType == FLOAT_TYPE){
+			  if(para->dataType == INT_TYPE){
+			     para->registerIndex = codeGenConvertFromIntToFloat(para->registerIndex);
+				 para->dataType = FLOAT_TYPE;
+			  }
+			  char * dstRegName;
+			  codeGenPrepareRegister(FLOAT_TYPE, para->registerIndex, 1, 0, &dstRegName);
+			  fprintf(g_codeGenOutputFp, "fsw %s, %d(sp)\n", dstRegName, offsetForPara + 8);
+			  freeRegister(FLOAT_REG, para->registerIndex);
+		  }
+		  offsetForPara += getVariableSize(formal_para->type);
+		  formal_para = formal_para->next;
+		  para = para->rightSibling;
+		}
+		  fprintf(g_codeGenOutputFp, ".data\n");
+		  fprintf(g_codeGenOutputFp, "L_paraSize_%s: %d\n",functionIdNode->semantic_value.identifierSemanticValue
+														   .symbolTableEntry->name, offsetForPara);
+		  fprintf(g_codeGenOutputFp, ".text\n");
+	  }
       fprintf(g_codeGenOutputFp, "jal _start_%s\n",
               functionIdNode->semantic_value.identifierSemanticValue
                   .identifierName);
+
+	  fprintf(g_codeGenOutputFp, "add sp, sp, %s\n", intOtherRegisterName_64[1]);
     } else {
       fprintf(g_codeGenOutputFp, "jal %s\n",
               functionIdNode->semantic_value.identifierSemanticValue
