@@ -353,7 +353,7 @@ void codeGen2Reg1ImmInstruction(ProcessorType processorType, char *instruction,
 
 int codeGenConvertFromIntToFloat(int intRegIndex) {
   /*TODO*/
-  int floatRegisterIndex;
+  int floatRegisterIndex = getRegister(FLOAT_REG);;
   char *reg1Name = NULL;
   codeGenPrepareRegister(FLOAT_REG, floatRegisterIndex, 0, 0, &reg1Name);
 
@@ -537,12 +537,12 @@ void codeGenExprNode(AST_NODE *exprNode) {
     codeGenExprRelatedNode(rightOp);
     if (leftOp->dataType == FLOAT_TYPE || rightOp->dataType == FLOAT_TYPE) {
       if (leftOp->dataType == INT_TYPE) {
-        leftOp->registerIndex =
-            codeGenConvertFromIntToFloat(leftOp->registerIndex);
+        leftOp->registerIndex = codeGenConvertFromIntToFloat(leftOp->registerIndex);
+		leftOp->dataType = FLOAT_TYPE;
       }
       if (rightOp->dataType == INT_TYPE) {
-        rightOp->registerIndex =
-            codeGenConvertFromIntToFloat(rightOp->registerIndex);
+        rightOp->registerIndex = codeGenConvertFromIntToFloat(rightOp->registerIndex);
+		rightOp->dataType = FLOAT_TYPE;
       }
 
       switch (exprNode->semantic_value.exprSemanticValue.op.binaryOp) {
