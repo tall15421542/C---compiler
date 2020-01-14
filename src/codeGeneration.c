@@ -831,7 +831,7 @@ void codeGenFunctionCall(AST_NODE *functionCallNode) {
 		  para = para->rightSibling;
 		}
 		  fprintf(g_codeGenOutputFp, ".data\n");
-		  fprintf(g_codeGenOutputFp, "L_paraSize_%d: %d\n", label, offsetForPara);
+		  fprintf(g_codeGenOutputFp, "L_paraSize_%d: .word %d\n", label, offsetForPara);
 		  fprintf(g_codeGenOutputFp, ".text\n");
 	  }
       fprintf(g_codeGenOutputFp, "jal _start_%s\n",
