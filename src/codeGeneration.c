@@ -839,11 +839,10 @@ int codeGenCalcArrayElemenetAddress(AST_NODE *idNode) {
   /*TODO multiple dimensions */
   fprintf(g_codeGenOutputFp, "// multiple array\n");
   while(traverseDim){
-	    int constLabel = codeGenConstantLabel(INT_TYPE, &sizeInEachDimension[dimIndex]);
 		int dimRegIndex = getRegister(INT_TYPE);
 		char *dimRegName = NULL;
 		codeGenPrepareRegister(INT_REG, dimRegIndex, 0, 0, &dimRegName);
-		fprintf(g_codeGenOutputFp, "li %s, _CONSTANT_%d\n", dimRegName, constLabel);
+		fprintf(g_codeGenOutputFp, "li %s, %d\n", dimRegName, sizeInEachDimension[dimIndex]);
 		codeGenSaveToMemoryIfPsuedoRegister(INT_REG, dimRegIndex, dimRegName); 
 
         codeGen3RegInstruction(INT_REG, "mul", linearIdxRegisterIndex,
