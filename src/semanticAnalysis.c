@@ -398,6 +398,9 @@ void declareIdList(AST_NODE* declarationNode, SymbolAttributeKind isVariableOrTy
 				
 				SymbolTableEntry * entry = traverseIDList->semantic_value.identifierSemanticValue.symbolTableEntry;
 				traverseIDList->dataType = entry->attribute->attr.typeDescriptor->properties.dataType;
+				if(isVariableOrTypeAttribute == VARIABLE_ATTRIBUTE && ignoreArrayFirstDimSize){
+					setOffsetAndUpdateGlobalOffset_para(attribute);
+				}
                 //if(is variable && !function parameter && !globalVariable)
                 if(isVariableOrTypeAttribute == VARIABLE_ATTRIBUTE && !ignoreArrayFirstDimSize && !isGlobalVariable(traverseIDList->semantic_value.identifierSemanticValue.symbolTableEntry))
                 {
